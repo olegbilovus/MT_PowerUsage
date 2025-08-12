@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"net/http"
 	"os"
 	"os/signal"
@@ -12,6 +13,7 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
+	_ "github.com/mattn/go-sqlite3"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -20,9 +22,11 @@ var (
 		"PLUG_IP",
 		"PLUG_TYPE",
 		"FREQ",
+		"SQLITE_DB",
 	}
 )
 
+//goland:noinspection D
 func main() {
 	log.SetReportCaller(true)
 	log.SetFormatter(&log.TextFormatter{FullTimestamp: true,
@@ -70,6 +74,27 @@ func main() {
 		}
 	}
 
+	dbSQLite, errDB := sql.Open("sqlite3", os.Getenv("SQLITE_DB"))
+	if errDB != nil {
+		log.Fatalln(errDB)
+	}
+
+	var db Database
+	db = SQLite{dbSQLite}
+	if err := db.Init(); err != nil {
+		log.Fatalln(err)
+	}
+	if os.Getenv("RESET_DB") == "true" {
+		if err := db.Reset(); err != nil {
+			log.Fatalf("Error resetting the db: %v", err)
+		}
+		log.Warning("DB reset")
+	}
+
+	if err := plug.TurnOn(); err != nil {
+		log.Fatalln("Could not turn on the plug")
+	}
+
 	freq, _ := strconv.Atoi(os.Getenv("FREQ"))
 	freqDur := time.Duration(freq) * time.Second
 
@@ -82,20 +107,24 @@ func main() {
 	for ; receivedSignal == nil; receivedSignal = sleep(freqDur, sigs) {
 		i++
 		go func(i int32) {
-			start := time.Now()
+			start := time.Now().UTC()
 			log.Info("Started check #", i)
 
 			if load, err := plug.Load(); err != nil {
 				log.Errorf("Error getting load: %v", err)
 			} else {
-				log.WithFields(log.Fields{
-					"name":  plug.Name(),
-					"power": load,
-				}).Info("Plug")
+				if err := db.Write(start, load); err != nil {
+					log.Errorf("Error writing to db: %v", err)
+				} else {
+					log.WithFields(log.Fields{
+						"name":  plug.Name(),
+						"power": load,
+					}).Info("Plug")
+				}
 			}
 
 			log.WithFields(log.Fields{
-				"duration": time.Since(start),
+				"duration": time.Now().UTC().Sub(start),
 			}).Info("Finished check #", i)
 		}(i)
 	}

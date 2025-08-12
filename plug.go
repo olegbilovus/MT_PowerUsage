@@ -145,9 +145,6 @@ func (s ShellyPlugSv2) power(on bool) error {
 		return err
 	}
 
-	if data["ison"].(bool) != on {
-		return fmt.Errorf("could not set plug to %v", on)
-	}
 	return nil
 }
 
