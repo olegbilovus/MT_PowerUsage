@@ -37,13 +37,13 @@ func main() {
 		}})
 	log.SetLevel(log.TraceLevel)
 
-	if _, foundEnv := os.LookupEnv("URL_MODEM_STATUS"); !foundEnv {
+	if _, foundEnv := os.LookupEnv("PLUG_IP"); !foundEnv {
 		if err := godotenv.Load(); err != nil {
 			log.Fatalln("Error loading .env file")
 		}
 		log.Info("Loaded Env from .env")
 	} else {
-		log.Info("Skipped loading .env because found URL_MODEM_STATUS already in the Env")
+		log.Info("Skipped loading .env because found PLUG_IP already in the Env")
 	}
 
 	if missingEnvVars := checkEnvVars(); len(missingEnvVars) > 0 {
