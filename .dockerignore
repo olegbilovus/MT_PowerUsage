@@ -201,3 +201,5 @@ go.work
 .env
 
 *.db
+
+Dockerfile
