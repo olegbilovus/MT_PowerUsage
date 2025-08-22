@@ -1,10 +1,10 @@
 module github.com/olegbilovus/MT_PowerUsage
 
-go 1.24
+go 1.25
 
 require (
 	github.com/joho/godotenv v1.5.1
-	github.com/mattn/go-sqlite3 v1.14.31
+	github.com/mattn/go-sqlite3 v1.14.32
 	github.com/sirupsen/logrus v1.9.3
 )
 
