@@ -50,39 +50,36 @@ func main() {
 		log.Fatalln("The following Env vars are missing: ", strings.Join(missingEnvVars, ", "))
 	}
 
+	plugType, err := strconv.Atoi(os.Getenv("PLUG_TYPE"))
+	if err != nil {
+		log.Fatalf("Invalid PLUG_TYPE: %v", err)
+	}
+	ip := os.Getenv("PLUG_IP")
+	client := &http.Client{Timeout: 5 * time.Second}
 	var plug Plug
-	if plugType, err := strconv.Atoi(os.Getenv("PLUG_TYPE")); err != nil {
-		log.Fatalln(err)
-	} else {
-		ip := os.Getenv("PLUG_IP")
-		client := &http.Client{Timeout: 5 * time.Second}
-		switch plugType {
-		case 1:
-			plug = ShellyPlugS{
-				ip:     ip,
-				client: client,
-			}
-			break
-		case 2:
-			plug = ShellyPlugSv2{
-				ip:     ip,
-				client: client,
-			}
-			break
-		default:
-			log.Fatalf("PLUG_TYPE must be a value in : 1, 2. %d is not valid", plugType)
+	switch plugType {
+	case 1:
+		plug = ShellyPlugS{
+			ip:     ip,
+			client: client,
 		}
+	case 2:
+		plug = ShellyPlugSv2{
+			ip:     ip,
+			client: client,
+		}
+	default:
+		log.Fatalf("PLUG_TYPE must be a value in : 1, 2. %d is not valid", plugType)
 	}
 
-	dbSQLite, errDB := sql.Open("sqlite3", os.Getenv("SQLITE_DB"))
-	if errDB != nil {
-		log.Fatalln(errDB)
+	dbSQLite, err := sql.Open("sqlite3", os.Getenv("SQLITE_DB"))
+	if err != nil {
+		log.Fatalf("Error opening database: %v", err)
 	}
-
-	var db Database
-	db = SQLite{dbSQLite}
+	defer dbSQLite.Close()
+	db := SQLite{dbSQLite}
 	if err := db.Init(); err != nil {
-		log.Fatalln(err)
+		log.Fatalf("Error initializing database: %v", err)
 	}
 	if os.Getenv("RESET_DB") == "true" {
 		if err := db.Reset(); err != nil {
@@ -92,10 +89,13 @@ func main() {
 	}
 
 	if err := plug.TurnOn(); err != nil {
-		log.Fatalln("Could not turn on the plug")
+		log.Fatalf("Could not turn on the plug: %v", err)
 	}
 
-	freq, _ := strconv.Atoi(os.Getenv("FREQ"))
+	freq, err := strconv.Atoi(os.Getenv("FREQ"))
+	if err != nil {
+		log.Fatalf("Invalid FREQ: %v", err)
+	}
 	freqDur := time.Duration(freq) * time.Second
 
 	// Manage signals
@@ -124,7 +124,7 @@ func main() {
 			}
 
 			log.WithFields(log.Fields{
-				"duration": time.Now().UTC().Sub(start),
+				"duration": time.Since(start),
 			}).Info("Finished check #", i)
 		}(i)
 	}

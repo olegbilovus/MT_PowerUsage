@@ -1,0 +1,15 @@
+services:
+  mt_powerusage:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mt_powerusage
+    restart: always
+    environment:
+      - PLUG_IP=${PLUG_IP}
+      - PLUG_TYPE=${PLUG_TYPE}
+      - FREQ=1
+      - SQLITE_DB=${SQLITE_DB}
+    volumes:
+      - ./dbs/${SQLITE_DB}:/${SQLITE_DB}
+    network_mode: "host"
