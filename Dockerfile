@@ -1,4 +1,4 @@
-FROM golang:1.25-bookworm AS build-env
+FROM golang:1.25-trixie AS build-env
 
 WORKDIR /src
 
@@ -8,7 +8,7 @@ RUN go mod download
 COPY . .
 RUN CGO_ENABLED=1 go build -o /app
 
-FROM debian:bookworm-slim
+FROM debian:trixie-slim
 
 COPY --from=build-env /app /app
 
