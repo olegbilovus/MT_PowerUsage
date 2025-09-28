@@ -72,7 +72,10 @@ func main() {
 		log.Fatalf("PLUG_TYPE must be a value in : 1, 2. %d is not valid", plugType)
 	}
 
-	dbSQLite, err := sql.Open("sqlite3", os.Getenv("SQLITE_DB"))
+	dbPath := path.Join("dbs", os.Getenv("SQLITE_DB"))
+	log.Infof("saving data in %s", dbPath)
+
+	dbSQLite, err := sql.Open("sqlite3", dbPath)
 	if err != nil {
 		log.Fatalf("Error opening database: %v", err)
 	}

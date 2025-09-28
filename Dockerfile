@@ -12,4 +12,6 @@ FROM debian:trixie-slim
 
 COPY --from=build-env /app /app
 
+RUN mkdir dbs
+
 CMD ["/app"]

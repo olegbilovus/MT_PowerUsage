@@ -203,3 +203,7 @@ go.work
 *.db
 
 Dockerfile
+
+dbs/*
+
+compose.yml

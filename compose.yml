@@ -11,5 +11,5 @@ services:
       - FREQ=1
       - SQLITE_DB=${SQLITE_DB}
     volumes:
-      - ./dbs/${SQLITE_DB}:/${SQLITE_DB}
+      - ./dbs:/dbs
     network_mode: "host"
