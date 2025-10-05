@@ -1,4 +1,4 @@
-package main
+package database
 
 import (
 	"database/sql"
@@ -12,7 +12,7 @@ type Database interface {
 }
 
 type SQLite struct {
-	db *sql.DB
+	DB *sql.DB
 }
 
 func (s SQLite) Init() error {
@@ -26,21 +26,21 @@ func (s SQLite) CreateTable() error {
         load REAL
     );
     `
-	_, err := s.db.Exec(query)
+	_, err := s.DB.Exec(query)
 	return err
 }
 
 func (s SQLite) Write(time time.Time, load float64) error {
 	const query = `INSERT INTO power VALUES (?, ?)`
 
-	_, err := s.db.Exec(query, time, load)
+	_, err := s.DB.Exec(query, time, load)
 	return err
 }
 
 func (s SQLite) Reset() error {
 	const query = `DROP TABLE IF EXISTS power;`
 
-	if _, err := s.db.Exec(query); err == nil {
+	if _, err := s.DB.Exec(query); err == nil {
 		return s.CreateTable()
 	} else {
 		return err

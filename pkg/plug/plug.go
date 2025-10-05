@@ -1,4 +1,4 @@
-package main
+package plug
 
 import (
 	"encoding/json"
@@ -21,11 +21,11 @@ type Plug interface {
 	TurnOff() error
 }
 
-const NilClientError = "the client is nil"
+const NilClientError = "the Client is nil"
 
 type ShellyPlugS struct {
-	ip     string
-	client *http.Client
+	Ip     string
+	Client *http.Client
 }
 
 func (s ShellyPlugS) Name() string {
@@ -33,12 +33,12 @@ func (s ShellyPlugS) Name() string {
 }
 
 func (s ShellyPlugS) Load() (float64, error) {
-	if err := checkClientNil(s.client); err != nil {
+	if err := checkClientNil(s.Client); err != nil {
 		return 0, err
 	}
 
-	req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("http://%v/meter/0", s.ip), nil)
-	res, err := s.client.Do(req)
+	req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("http://%v/meter/0", s.Ip), nil)
+	res, err := s.Client.Do(req)
 	if err != nil {
 		return 0, err
 	}
@@ -54,7 +54,7 @@ func (s ShellyPlugS) Load() (float64, error) {
 }
 
 func (s ShellyPlugS) power(on bool) error {
-	url := fmt.Sprintf("http://%v/relay/0?turn=", s.ip)
+	url := fmt.Sprintf("http://%v/relay/0?turn=", s.Ip)
 	if on {
 		url += "on"
 	} else {
@@ -62,7 +62,7 @@ func (s ShellyPlugS) power(on bool) error {
 	}
 
 	req, _ := http.NewRequest(http.MethodGet, url, nil)
-	res, err := s.client.Do(req)
+	res, err := s.Client.Do(req)
 	if err != nil {
 		return err
 	}
@@ -81,22 +81,22 @@ func (s ShellyPlugS) power(on bool) error {
 }
 
 func (s ShellyPlugS) TurnOn() error {
-	if err := checkClientNil(s.client); err != nil {
+	if err := checkClientNil(s.Client); err != nil {
 		return err
 	}
 	return s.power(true)
 }
 
 func (s ShellyPlugS) TurnOff() error {
-	if err := checkClientNil(s.client); err != nil {
+	if err := checkClientNil(s.Client); err != nil {
 		return err
 	}
 	return s.power(false)
 }
 
 type ShellyPlugSv2 struct {
-	ip     string
-	client *http.Client
+	Ip     string
+	Client *http.Client
 }
 
 func (s ShellyPlugSv2) Name() string {
@@ -104,12 +104,12 @@ func (s ShellyPlugSv2) Name() string {
 }
 
 func (s ShellyPlugSv2) Load() (float64, error) {
-	if err := checkClientNil(s.client); err != nil {
+	if err := checkClientNil(s.Client); err != nil {
 		return 0, err
 	}
 
-	req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("http://%v/rpc/Switch.GetStatus?id=0", s.ip), nil)
-	res, err := s.client.Do(req)
+	req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("http://%v/rpc/Switch.GetStatus?id=0", s.Ip), nil)
+	res, err := s.Client.Do(req)
 	if err != nil {
 		return 0, err
 	}
@@ -125,7 +125,7 @@ func (s ShellyPlugSv2) Load() (float64, error) {
 }
 
 func (s ShellyPlugSv2) power(on bool) error {
-	url := fmt.Sprintf("http://%v/rpc/Switch.Set?id=0&on=", s.ip)
+	url := fmt.Sprintf("http://%v/rpc/Switch.Set?id=0&on=", s.Ip)
 	if on {
 		url += "true"
 	} else {
@@ -133,7 +133,7 @@ func (s ShellyPlugSv2) power(on bool) error {
 	}
 
 	req, _ := http.NewRequest(http.MethodGet, url, nil)
-	res, err := s.client.Do(req)
+	res, err := s.Client.Do(req)
 	if err != nil {
 		return err
 	}
@@ -149,14 +149,14 @@ func (s ShellyPlugSv2) power(on bool) error {
 }
 
 func (s ShellyPlugSv2) TurnOn() error {
-	if err := checkClientNil(s.client); err != nil {
+	if err := checkClientNil(s.Client); err != nil {
 		return err
 	}
 	return s.power(true)
 }
 
 func (s ShellyPlugSv2) TurnOff() error {
-	if err := checkClientNil(s.client); err != nil {
+	if err := checkClientNil(s.Client); err != nil {
 		return err
 	}
 	return s.power(false)

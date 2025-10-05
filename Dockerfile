@@ -6,7 +6,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
-RUN CGO_ENABLED=1 go build -o /app
+RUN CGO_ENABLED=1 go build -o /app ./cmd/MT_PowerUsage
 
 FROM debian:trixie-slim
 

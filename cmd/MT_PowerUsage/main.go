@@ -15,6 +15,9 @@ import (
 	"github.com/joho/godotenv"
 	_ "github.com/mattn/go-sqlite3"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/olegbilovus/MT_PowerUsage/internal/database"
+	"github.com/olegbilovus/MT_PowerUsage/pkg/plug"
 )
 
 var (
@@ -56,17 +59,17 @@ func main() {
 	}
 	ip := os.Getenv("PLUG_IP")
 	client := &http.Client{Timeout: 5 * time.Second}
-	var plug Plug
+	var powerPlug plug.Plug
 	switch plugType {
 	case 1:
-		plug = ShellyPlugS{
-			ip:     ip,
-			client: client,
+		powerPlug = plug.ShellyPlugS{
+			Ip:     ip,
+			Client: client,
 		}
 	case 2:
-		plug = ShellyPlugSv2{
-			ip:     ip,
-			client: client,
+		powerPlug = plug.ShellyPlugSv2{
+			Ip:     ip,
+			Client: client,
 		}
 	default:
 		log.Fatalf("PLUG_TYPE must be a value in : 1, 2. %d is not valid", plugType)
@@ -80,7 +83,7 @@ func main() {
 		log.Fatalf("Error opening database: %v", err)
 	}
 	defer dbSQLite.Close()
-	db := SQLite{dbSQLite}
+	db := database.SQLite{DB: dbSQLite}
 	if err := db.Init(); err != nil {
 		log.Fatalf("Error initializing database: %v", err)
 	}
@@ -91,8 +94,8 @@ func main() {
 		log.Warning("DB reset")
 	}
 
-	if err := plug.TurnOn(); err != nil {
-		log.Fatalf("Could not turn on the plug: %v", err)
+	if err := powerPlug.TurnOn(); err != nil {
+		log.Fatalf("Could not turn on the powerPlug: %v", err)
 	}
 
 	freq, err := strconv.Atoi(os.Getenv("FREQ"))
@@ -113,14 +116,14 @@ func main() {
 			start := time.Now().UTC()
 			log.Info("Started check #", i)
 
-			if load, err := plug.Load(); err != nil {
+			if load, err := powerPlug.Load(); err != nil {
 				log.Errorf("Error getting load: %v", err)
 			} else {
 				if err := db.Write(start, load); err != nil {
 					log.Errorf("Error writing to db: %v", err)
 				} else {
 					log.WithFields(log.Fields{
-						"name":  plug.Name(),
+						"name":  powerPlug.Name(),
 						"power": load,
 					}).Info("Plug")
 				}
